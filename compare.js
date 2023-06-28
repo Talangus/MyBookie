@@ -52,11 +52,11 @@ function confirmKeys(obj2, key1) {
 const fs = require('fs');
 
 // Load the first JSON file
-const file1 = fs.readFileSync('./output1.json', 'utf8');
+const file1 = fs.readFileSync('./pinanacle_output.json', 'utf8');
 const obj1 = JSON.parse(file1);
 
 // Load the second JSON file
-const file2 = fs.readFileSync('./output2.json', 'utf8');
+const file2 = fs.readFileSync('./loot_output.json', 'utf8');
 const obj2 = JSON.parse(file2);
 
 Object.keys(obj1).forEach(key1 => {
