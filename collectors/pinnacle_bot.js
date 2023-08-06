@@ -1,26 +1,26 @@
 const puppeteer = require('puppeteer');
 
 const URL ='https://www.pinnacle.com/en/esports/games/league-of-legends/matchups'
-const matchesContainerClass = '#events-chunkmode > div'; 
-const matchClass = '.scrollbar-item';
-const teamClass =  '.event-row-participant';
+const matchesContainerSelector = '#events-chunkmode > div'; 
+const matchSelector = '.scrollbar-item';
+const teamSelector =  '.event-row-participant';
 
 async function scrollElement(page){
   await page.evaluate((elementClass) => {
-    document.querySelector(elementClass).scrollBy(0, 200)}, matchesContainerClass)
+    document.querySelector(elementClass).scrollBy(0, 200)}, matchesContainerSelector)
   await new Promise(r => setTimeout(r, 5000));
   console.log("scrolled------------------")
 } 
 
 async function getCurrentElements(page){
-  await page.waitForSelector(matchesContainerClass);
+  await page.waitForSelector(matchesContainerSelector);
   console.log("done wait parent------------------") 
-  await page.waitForSelector(matchClass);
+  await page.waitForSelector(matchSelector);
   console.log("done wait childern------------------") 
-  let parentElement = await page.$(matchesContainerClass); 
-  let subElements = await parentElement.$$(matchClass);
+  let parentElement = await page.$(matchesContainerSelector); 
+  let subElements = await parentElement.$$(matchSelector);
   for (const element of subElements) {
-    const participants = await element.$$(teamClass)
+    const participants = await element.$$(teamSelector)
     for (const participant of participants){
       const text = await participant.evaluate(node => node.innerText); // Get the text content of each sub-element
       console.log(text);
