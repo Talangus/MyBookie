@@ -1,54 +1,54 @@
 const puppeteer = require('puppeteer');
+const Match = require('../classes/Match')
+const util = require('../util')
 
-const URL ='https://www.pinnacle.com/en/esports/games/league-of-legends/matchups'
+
 const matchesContainerSelector = '#events-chunkmode > div'; 
 const matchSelector = '.scrollbar-item';
 const teamSelector =  '.event-row-participant';
 
-async function scrollElement(page){
-  await page.evaluate((elementClass) => {
-    document.querySelector(elementClass).scrollBy(0, 200)}, matchesContainerSelector)
-  await new Promise(r => setTimeout(r, 5000));
-  console.log("scrolled------------------")
-} 
+function containsMatch(matchesArray, currentMatch){
+  for ( const match of matchesArray){
+    if (match.id === currentMatch.id)
+      return true
+  }
+  return false;
+}
 
-async function getCurrentElements(page){
-  await page.waitForSelector(matchesContainerSelector);
-  console.log("done wait parent------------------") 
+async function getMatches(page, matchesArray, game){
   await page.waitForSelector(matchSelector);
-  console.log("done wait childern------------------") 
-  let parentElement = await page.$(matchesContainerSelector); 
-  let subElements = await parentElement.$$(matchSelector);
-  for (const element of subElements) {
-    const participants = await element.$$(teamSelector)
-    for (const participant of participants){
-      const text = await participant.evaluate(node => node.innerText); // Get the text content of each sub-element
-      console.log(text);
-    }
+  let matchesContainer = await page.$(matchesContainerSelector); 
+  let matches = await matchesContainer.$$(matchSelector);
+  for (const match of matches) {
+    const teamElements = await match.$$(teamSelector)
+    const teamsArray = await Promise.all(teamElements.map(util.getElementText))
+    const currentMatch = new Match(game, teamsArray, [] )
+    if (!containsMatch(matchesArray, currentMatch))
+      matchesArray.push(currentMatch)
   }
 }
 
 
-async function runBot() {
-  const browser = await puppeteer.launch({headless: false});
-  const page = await browser.newPage();
-  page.setViewport({
-    width: 580,
-    height: 929,
-  })
-  try {
-    await page.goto(URL);
-    await getCurrentElements(page) 
-    await scrollElement(page)
-    await getCurrentElements(page)
-    await scrollElement(page)
-    await getCurrentElements(page)
-    
+async function runBot(url, game) {
+  let browser, matchesArray;
+  try{
+    browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.goto(url);
+    matchesArray = []
+    let prevSize = -1
+    while (prevSize !== matchesArray.length){
+      prevSize = matchesArray.length
+      await getMatches(page, matchesArray, game);
+      await util.scrollElement(page, matchesContainerSelector)
+      console.log("arr size: " + matchesArray.length)
+    }
   } catch (error) {
     console.error('An error occurred:', error);
   } finally {
     await browser.close();
+    return matchesArray; 
   }
 }
 
-runBot().then(res => {console.log(res)})
+module.exports = runBot
