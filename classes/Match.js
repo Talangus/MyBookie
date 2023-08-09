@@ -6,12 +6,13 @@ function generateMD5Hash(input) {
 }
 
 class Match {
-    constructor(game, teams, odds) {
+    constructor(game, teams, odds, type) {
         this.game = game;
         this.teams = teams;
         this.odds = odds;
-        this.id = generateMD5Hash(game + teams.toString())
-    }
+        this.type = type
+        this.id = generateMD5Hash(game + teams.toString() + type.toString())
+    } //if you change here, change match validator
 }
 
 module.exports = Match;

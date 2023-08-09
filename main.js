@@ -7,3 +7,12 @@ runBot('https://www.pinnacle.com/en/esports/games/league-of-legends/matchups', '
 
 runBot('https://www.pinnacle.com/en/esports/games/csgo/matchups', 'CSGO')
 .then(res => util.safeWrite('./outputs/pinnacle/CSGO.json', JSON.stringify(res)))
+
+runBot('https://www.pinnacle.com/en/esports/games/dota-2/matchups/', 'DOTA')
+.then(res => util.safeWrite('./outputs/pinnacle/DOTA.json', JSON.stringify(res)))
+
+runBot('https://www.pinnacle.com/en/esports/games/crossfire/matchups/', 'CROSSFIRE')
+.then(res => util.safeWrite('./outputs/pinnacle/CROSSFIRE.json', JSON.stringify(res)))
+
+runBot('https://www.pinnacle.com/en/esports/games/honor-of-kings/matchups/', 'HONOROFKINGS')
+.then(res => util.safeWrite('./outputs/pinnacle/HONOROFKINGS.json', JSON.stringify(res)))
