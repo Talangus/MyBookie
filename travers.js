@@ -1,32 +1,44 @@
 function findNodesWithRegex(rootNode, teamRegex, oddRegex) {
-    
-  function traverse(node, result) {
+  
+  function mergeResult(nodeResult, childResult){
+    const unifiedTeamsSet = new Set([...nodeResult.teams, ...childResult.teams]);
+    const unifiedOddsSet = new Set([...nodeResult.odds, ...childResult.odds]);
+  
+    const unifiedObject = {
+      teams: unifiedTeamsSet,
+      odds: unifiedOddsSet,
+    };
+  
+    return unifiedObject;
+  }
+
+  function traverse(node) {
     if (!node) return;
-    
+    let nodeResult = {teams: new Set(), odds: new Set()}
     if (node.nodeType === Node.ELEMENT_NODE) {
-      if (result.teams.length < 2 && teamRegex.test(node.innerText)) {
-        result.teams.push(node.innerText);
-        return result;
+      if (teamRegex.test(node.innerText)) {
+        nodeResult.teams.add(node.innerText);
+        return nodeResult;
       }
-      if (result.odds.length < 2 && oddRegex.test(node.innerText)) {
-        result.odds.push(node.innerText);
-        return result;
+      if (oddRegex.test(node.innerText)) {
+        nodeResult.odds.add(node.innerText);
+        return nodeResult;
       }
     }
 
     for (const childNode of node.childNodes) {
-      result = traverse(childNode, result);
-      if (result.teams.length == 2 && result.odds.length == 2){
-        allResults.push(result)
-        return {teams: [], odds: []}
+      let childResult = traverse(childNode);
+      nodeResult = mergeResult(nodeResult, childResult);
+      if (nodeResult.teams.size == 2 && nodeResult.odds.size == 2){
+        allResults.push(nodeResult)
+        return {teams: new Set(), odds: new Set()}
       }
 
     }
-    return result;
+    return nodeResult;
 
   }
-  let result = {teams: [], odds: []};
-  traverse(rootNode, result);
+  traverse(rootNode);
   
 }
 
