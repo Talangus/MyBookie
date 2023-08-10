@@ -44,9 +44,9 @@ function containsMatch(matchesArray, currentMatch){
 async function getMatches(page, matchesArray, game){
   
   
-  const teamRegex = /[a-zA-Z0-9!@#$%^&*()_]+ \((?:map \d|match)\)$/i;
-  const oddRegex = /^\d\.\d{3}$/;
-  const matches = await page.evaluate(findNodesWithRegex ,teamRegex, oddRegex) 
+  const teamRegexString = "[a-zA-Z0-9!@#$%^&*()_]+ \\((?:map \\d|match)\\)$";
+  const oddRegexString = "^\\d\\.\\d{3}$";
+  const matches =  JSON.parse(await page.evaluate(findNodesWithRegex ,teamRegexString, oddRegexString)) 
  
   
   for (const match of matches) {

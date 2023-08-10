@@ -1,6 +1,6 @@
 const Node = require('puppeteer').Node;
 
-function findNodesWithRegex(teamRegex, oddRegex) {
+function findNodesWithRegex(teamRegexString, oddRegexString) {
   
   function mergeResult(nodeResult, childResult){
     const unifiedTeamsSet = new Set([...nodeResult.teams, ...childResult.teams]);
@@ -42,8 +42,13 @@ function findNodesWithRegex(teamRegex, oddRegex) {
   }
   const rootNode = document.body
   const allResults = []
+  const teamRegex = new RegExp(teamRegexString, 'i')
+  const oddRegex = new RegExp(oddRegexString, 'i')
   traverse(rootNode);
-  return allResults
+  return JSON.stringify(allResults.map(obj => ({
+    teams: Array.from(obj.teams),
+    odds: Array.from(obj.odds)
+  })))
   
 }
 
