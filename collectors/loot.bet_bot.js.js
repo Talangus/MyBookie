@@ -1,11 +1,11 @@
 const puppeteer = require('puppeteer');
 const Match = require('../classes/Match')
 const util = require('../util');
-const { findNodesWithRegex } = require('../traverse');
+const { findNodesWithRegex2 } = require('../traverse');
 
 
 
-const matchesContainerSelector = '#events-chunkmode > div'; 
+const scrollableSelector = 'body'; 
 const matchSelector = 'div > div';
 const teamSelector =  '.event-row-participant';
 const moneylineOddsContainerSelector = 'div > div.style_moneyline__2CCDG'
@@ -44,9 +44,10 @@ function containsMatch(matchesArray, currentMatch){
 async function getMatches(page, matchesArray, game){
   
   
-  const teamRegexString = "[a-zA-Z0-9!@#$%^&*()_]+ \\((?:map \\d|match)\\)$";
-  const oddRegexString = "^\\d\\.\\d{3}$";
-  const matches =  JSON.parse(await page.evaluate(findNodesWithRegex ,teamRegexString, oddRegexString)) 
+  const teamRegexString = "^[a-zA-Z0-9!@#$%^&*()_]+( [a-zA-Z0-9!@#$%^&*()_]+){0,2}$";
+  const oddRegexString = "^\\d\\.\\d{2}$";
+  const typeRegexString = '^(match|map \\d|winner| )+$'
+  const matches =  JSON.parse(await page.evaluate(findNodesWithRegex2 ,teamRegexString, oddRegexString, typeRegexString)) 
  
   
   for (const match of matches) {
@@ -83,7 +84,7 @@ async function runBot(url, game) {
     while (prevSize !== matchesArray.length){
       prevSize = matchesArray.length
       await getMatches(page, matchesArray, game);
-      await util.scrollElement(page, matchesContainerSelector)
+      await util.scrollElement(page, scrollableSelector)
       console.log( game + " matches parsed: " + matchesArray.length)
     }
   } catch (error) {

@@ -31,7 +31,8 @@ async function getElementText(element){
 async function scrollElement(page, selector){
     await page.evaluate((selector) => {
       let scrollable = document.querySelector(selector)
-      scrollable.scrollBy(0, scrollable.clientHeight)  
+      if (scrollable)
+        scrollable.scrollBy(0, scrollable.clientHeight)  
     }, selector)
     await new Promise(r => setTimeout(r, 1000));
 } 
