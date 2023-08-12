@@ -12,21 +12,15 @@ const moneylineOddsContainerSelector = 'div > div.style_moneyline__2CCDG'
 const oddSelector = 'button > span'
 
 function parseName(str){
-  const regexPattern = /(.+)\s+\([^)]+\)/;
-  const regexMatch = str.match(regexPattern);
-  if (regexMatch && regexMatch[1]) {
-    return regexMatch[1].toLowerCase();
-  } else {
-    return ''
-  } 
+  return str.toLowerCase()
 }
 
 function parseType(str){
   if (str){
-    const regexPattern = /\(([^)]+)\)/;
+    const regexPattern = /(match|map \d)/i;
     const regexMatch = str.match(regexPattern);
-    if (regexMatch && regexMatch[1]) 
-      return regexMatch[1].toLowerCase().replace(' ','');
+    if (regexMatch && regexMatch[0]) 
+      return regexMatch[0].toLowerCase().replace(' ','');
   }
   return ''
    
@@ -54,8 +48,7 @@ async function getMatches(page, matchesArray, game){
     try {
       const teamsArray = [...match.teams]
       const parsedTeams = teamsArray.map(parseName)
-      const parsedType =  parseType(teamsArray[0])
-
+      const parsedType =  parseType(match.type)
       const oddsArray = [...match.odds]
       const parsedOdds = oddsArray.map((odd) => parseFloat(odd))
       
@@ -75,8 +68,8 @@ async function runBot(url, game) {
     browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setViewport({
-      width: 800,   // Narrow width
-      height: 1200, // High height
+      width: 1920,   
+      height: 1920, 
     });
     await page.goto(url);
     matchesArray = []
@@ -84,7 +77,7 @@ async function runBot(url, game) {
     while (prevSize !== matchesArray.length){
       prevSize = matchesArray.length
       await getMatches(page, matchesArray, game);
-      await util.scrollElement(page, scrollableSelector)
+      await util.scrollWindow(page)
       console.log( game + " matches parsed: " + matchesArray.length)
     }
   } catch (error) {
@@ -95,4 +88,4 @@ async function runBot(url, game) {
   }
 }
 
-module.exports = runBot
+module.exports = {runBot}

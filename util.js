@@ -35,6 +35,14 @@ async function scrollElement(page, selector){
         scrollable.scrollBy(0, scrollable.clientHeight)  
     }, selector)
     await new Promise(r => setTimeout(r, 1000));
+}
+
+async function scrollWindow(page){
+  await page.evaluate(() => {
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    window.scrollBy(0, viewportHeight) 
+  })
+  await new Promise(r => setTimeout(r, 5000));
 } 
 
 function safeWrite(filePath, content){
@@ -55,9 +63,8 @@ function validMatch(match){
   let {game, teams, odds, type} = match
   return isValidString(game) && 
          teams.length === 2 && teams.every(isValidString) &&
-         //odds.length === 2 & odds.every((obj) =>  typeof obj === 'number') &&
+         odds.length === 2 & odds.every((obj) =>  typeof obj === 'number') &&
          isValidString(type)
-
 }
 
 module.exports = {
@@ -65,5 +72,6 @@ module.exports = {
   getElementText,
   scrollElement,
   safeWrite,
-  validMatch
+  validMatch,
+  scrollWindow
 }

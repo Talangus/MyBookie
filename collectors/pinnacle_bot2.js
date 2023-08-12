@@ -94,4 +94,4 @@ async function runBot(url, game) {
   }
 }
 
-module.exports = runBot
+module.exports = {runBot}
