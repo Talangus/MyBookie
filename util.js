@@ -31,10 +31,18 @@ async function getElementText(element){
 async function scrollElement(page, selector){
     await page.evaluate((selector) => {
       let scrollable = document.querySelector(selector)
-      scrollable.scrollBy(0, scrollable.clientHeight)  
+      if (scrollable)
+        scrollable.scrollBy(0, scrollable.clientHeight)  
     }, selector)
     await new Promise(r => setTimeout(r, 1000));
-    console.log("scrolled------------------")
+}
+
+async function scrollWindow(page){
+  await page.evaluate(() => {
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    window.scrollBy(0, viewportHeight) 
+  })
+  await new Promise(r => setTimeout(r, 5000));
 } 
 
 function safeWrite(filePath, content){
@@ -47,9 +55,23 @@ function safeWrite(filePath, content){
       });
 }
 
+function isValidString(obj) {
+  return typeof obj === 'string' && obj !== '';
+}
+
+function validMatch(match){
+  let {game, teams, odds, type} = match
+  return isValidString(game) && 
+         teams.length === 2 && teams.every(isValidString) &&
+         odds.length === 2 & odds.every((obj) =>  typeof obj === 'number') &&
+         isValidString(type)
+}
+
 module.exports = {
   convertToEnglish,
   getElementText,
   scrollElement,
-  safeWrite
+  safeWrite,
+  validMatch,
+  scrollWindow
 }

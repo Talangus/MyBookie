@@ -1,30 +1,26 @@
 const puppeteer = require('puppeteer');
 const Match = require('../classes/Match')
-const util = require('../util')
+const util = require('../util');
+const { findNodesWithRegex2 } = require('../traverse');
 
 
-const matchesContainerSelector = '#events-chunkmode > div'; 
-const matchSelector = '.scrollbar-item';
+
+const scrollableSelector = 'body'; 
+const matchSelector = 'div > div';
 const teamSelector =  '.event-row-participant';
 const moneylineOddsContainerSelector = 'div > div.style_moneyline__2CCDG'
 const oddSelector = 'button > span'
 
 function parseName(str){
-  const regexPattern = /(.+)\s+\([^)]+\)/;
-  const regexMatch = str.match(regexPattern);
-  if (regexMatch && regexMatch[1]) {
-    return regexMatch[1].toLowerCase();
-  } else {
-    return ''
-  } 
+  return str.toLowerCase()
 }
 
 function parseType(str){
   if (str){
-    const regexPattern = /\(([^)]+)\)/;
+    const regexPattern = /(match|map \d)/i;
     const regexMatch = str.match(regexPattern);
-    if (regexMatch && regexMatch[1]) 
-      return regexMatch[1].toLowerCase().replace(' ','');
+    if (regexMatch && regexMatch[0]) 
+      return regexMatch[0].toLowerCase().replace(' ','');
   }
   return ''
    
@@ -40,21 +36,22 @@ function containsMatch(matchesArray, currentMatch){
 }
 
 async function getMatches(page, matchesArray, game){
-  await page.waitForSelector(matchSelector);
-  let matchesContainer = await page.$(matchesContainerSelector); 
-  let matches = await matchesContainer.$$(matchSelector);
+  
+  
+  const teamRegexString = "^[a-zA-Z0-9!@#$%^&*()_]+( [a-zA-Z0-9!@#$%^&*()_]+){0,2}$";
+  const oddRegexString = "^\\d\\.\\d{2}$";
+  const typeRegexString = '^(match|map \\d|winner| )+$'
+  const matches =  JSON.parse(await page.evaluate(findNodesWithRegex2 ,teamRegexString, oddRegexString, typeRegexString)) 
+ 
+  
   for (const match of matches) {
     try {
-      const teamElements = await match.$$(teamSelector)
-      const teamsArray = await Promise.all(teamElements.map(util.getElementText))
+      const teamsArray = [...match.teams]
       const parsedTeams = teamsArray.map(parseName)
-      const parsedType =  parseType(teamsArray[0])
-
-      const oddsContainer = await match.$(moneylineOddsContainerSelector)
-      const oddsElements = await oddsContainer.$$(oddSelector)
-      const oddsArray = await Promise.all(oddsElements.map(util.getElementText))
+      const parsedType =  parseType(match.type)
+      const oddsArray = [...match.odds]
       const parsedOdds = oddsArray.map((odd) => parseFloat(odd))
-
+      
       const currentMatch = new Match(game, parsedTeams, parsedOdds, parsedType)
       if (util.validMatch(currentMatch) && !containsMatch(matchesArray, currentMatch))
         matchesArray.push(currentMatch)
@@ -70,13 +67,17 @@ async function runBot(url, game) {
   try{
     browser = await puppeteer.launch();
     const page = await browser.newPage();
+    await page.setViewport({
+      width: 1920,   
+      height: 1920, 
+    });
     await page.goto(url);
     matchesArray = []
     let prevSize = -1
     while (prevSize !== matchesArray.length){
       prevSize = matchesArray.length
       await getMatches(page, matchesArray, game);
-      await util.scrollElement(page, matchesContainerSelector)
+      await util.scrollWindow(page)
       console.log( game + " matches parsed: " + matchesArray.length)
     }
   } catch (error) {
@@ -87,4 +88,4 @@ async function runBot(url, game) {
   }
 }
 
-module.exports = runBot
+module.exports = {runBot}

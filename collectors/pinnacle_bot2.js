@@ -1,10 +1,12 @@
 const puppeteer = require('puppeteer');
 const Match = require('../classes/Match')
-const util = require('../util')
+const util = require('../util');
+const { findNodesWithRegex } = require('../traverse');
+
 
 
 const matchesContainerSelector = '#events-chunkmode > div'; 
-const matchSelector = '.scrollbar-item';
+const matchSelector = 'div > div';
 const teamSelector =  '.event-row-participant';
 const moneylineOddsContainerSelector = 'div > div.style_moneyline__2CCDG'
 const oddSelector = 'button > span'
@@ -40,21 +42,22 @@ function containsMatch(matchesArray, currentMatch){
 }
 
 async function getMatches(page, matchesArray, game){
-  await page.waitForSelector(matchSelector);
-  let matchesContainer = await page.$(matchesContainerSelector); 
-  let matches = await matchesContainer.$$(matchSelector);
+  
+  
+  const teamRegexString = "[a-zA-Z0-9!@#$%^&*()_]+ \\((?:map \\d|match)\\)$";
+  const oddRegexString = "^\\d\\.\\d{3}$";
+  const matches =  JSON.parse(await page.evaluate(findNodesWithRegex ,teamRegexString, oddRegexString)) 
+ 
+  
   for (const match of matches) {
     try {
-      const teamElements = await match.$$(teamSelector)
-      const teamsArray = await Promise.all(teamElements.map(util.getElementText))
+      const teamsArray = [...match.teams]
       const parsedTeams = teamsArray.map(parseName)
       const parsedType =  parseType(teamsArray[0])
 
-      const oddsContainer = await match.$(moneylineOddsContainerSelector)
-      const oddsElements = await oddsContainer.$$(oddSelector)
-      const oddsArray = await Promise.all(oddsElements.map(util.getElementText))
+      const oddsArray = [...match.odds]
       const parsedOdds = oddsArray.map((odd) => parseFloat(odd))
-
+      
       const currentMatch = new Match(game, parsedTeams, parsedOdds, parsedType)
       if (util.validMatch(currentMatch) && !containsMatch(matchesArray, currentMatch))
         matchesArray.push(currentMatch)
@@ -70,6 +73,10 @@ async function runBot(url, game) {
   try{
     browser = await puppeteer.launch();
     const page = await browser.newPage();
+    await page.setViewport({
+      width: 800,   // Narrow width
+      height: 1200, // High height
+    });
     await page.goto(url);
     matchesArray = []
     let prevSize = -1
@@ -87,4 +94,4 @@ async function runBot(url, game) {
   }
 }
 
-module.exports = runBot
+module.exports = {runBot}
