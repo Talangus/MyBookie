@@ -22,8 +22,8 @@ const pinnacle_bot = require('./collectors/pinnacle_bot2')
 
 
 
-lootBet_bot.runBot('https://loot.bet/counter-strike', 'CSGO')
-.then(res => util.safeWrite('./outputs/loot.bet/CSGO.json', JSON.stringify(res)))
+// lootBet_bot.runBot('https://loot.bet/counter-strike', 'CSGO')
+// .then(res => util.safeWrite('./outputs/loot.bet/CSGO.json', JSON.stringify(res)))
 
 lootBet_bot.runBot('https://loot.bet/dota-2', 'DOTA')
 .then(res => util.safeWrite('./outputs/loot.bet/DOTA.json', JSON.stringify(res)))
